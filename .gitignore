@@ -1,0 +1,19 @@
+# Generated files
+Scanner.java
+parser.java
+sym.java
+*.class
+
+# IDE
+.vscode/
+*.iml
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bin/
+out/
+target/

@@ -1,0 +1,43 @@
+Este trabalho tem como objetivo a construção de um Analisador Léxico usando JFlex, a construção de um Analisador Sintático e Semântico usando JCup e a integração dos analisadores para processar código-fonte como input.
+
+Requisitos do Trabalho
+Elaborar um relatório contendo os seguintes itens:
+
+1. Analisador Léxico com JFlex (arquivo .flex)
+Nesta etapa a equipe deve compreender e implementar um analisador léxico, também conhecido como Scanner. Utilize a estrutura léxica básica encontrada em linguagens de programação convencionais para gerar um analisador léxico com JFlex que gera tokens baseado no códigofonte como entrada. Exemplo de especificação (.flex) deve incluir:
+
+Keywords (if, else, while, return, etc.) 
+Identificadores
+Constantes (números inteiros e pontos-flutuantes)
+Operadores (+, -, *, /, ==, !=, etc.)
+Delimitadores (;, ,, {, }, (, ), etc.)
+Comentários (single-line e multi-line) 
+2. Analisador Sintático e Semântico com JCup (arquivo .cup)
+Nesta etapa a equipe deve compreender e implementar um analisador sintático, também conhecido Parser. Utilize a estrutura gramatical básica encontrada em linguagens de programação convencionais para gerar um analisador com JCup. Exemplo de especificação (.cup) deve incluir:
+
+Estrutura do programa
+Declaração de variáveis
+Estruturas de controle (if-else, while loops)
+Definições e chamadas de funções
+Expressões e atribuições
+3. Integração
+Nesta etapa a equipe deve integrar as especificações (.flex e .cup) para que a saída do Scanner, tokens, sejam usados como input para o Parser. O projeto deve combinar o uso das ferramentas JFlex e JCup e entregar os seguintes itens:
+Integração: mostre que o Analisador Léxico opera corretamente em conjunto com o Analisador Sintático 
+Código-fonte de entrada: crie um arquivo input.txt contendo um programa simples na linguagem definida. Este arquivo deve conter várias construções, como declarações de variáveis, estruturas de controle, definição de funções e assim por diante. 
+Demonstração: escreva um programa que demonstra a solução integrada para o código-fonte de entrada, mostrando o processo de geração de tokens, checagens sintáticas e semânticas até uma saída esperada.
+Entrega
+Um relatório PDF a ser explicado em sala de aula ou no vídeo:
+
+Arquivo de especificação JFlex (.flex) e a classe Scanner Java sendo gerada (ou equivalente de ferramenta semelhante).
+Arquivo de especificação JCup (.cup) e as classes Parser e Sym Java geradas (ou equivalente de ferramenta semelhante).
+Scripts de teste e demonstração de integração, imprimindo o processo completo.
+Código-fonte de entrada (input.txt).
+Um arquivo README explicando como compilar e executar o scanner, o parser e a solução integrada.
+O aluno deverá apresentar o trabalho em sala. Como alternativa, poderá:
+Gravar uma apresentação em vídeo;
+Publicar o vídeo no YouTube;
+Inserir o link do vídeo no relatório.
+⚠️ Importante:
+
+O vídeo deve estar acessível publicamente ou com acesso restrito (para quem possui o link)
+Caso o link esteja indisponível ou privado, o aluno não receberá nota referente à apresentação.
