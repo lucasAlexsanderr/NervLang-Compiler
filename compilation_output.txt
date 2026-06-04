@@ -1,0 +1,129 @@
+=== NervLang Compiler - Build & Run ===
+
+[1/4] Generating Scanner from nervlang.flex ...
+Reading "nervlang.flex"
+Constructing NFA : 292 states in NFA
+Converting NFA to DFA : 
+.........................................................................................................................................................................
+171 states before minimization, 164 states in minimized DFA
+Old file "Scanner.java" saved as "Scanner.java~"
+Writing code to "Scanner.java"
+      -> Scanner.java generated
+[2/4] Generating Parser from nervlang.cup ...
+Warning : Terminal "LBRACKET" was declared but never used
+Warning : Terminal "EVA_UNIT" was declared but never used
+Warning : Terminal "RBRACKET" was declared but never used
+Warning : Terminal "DEPLOY" was declared but never used
+------- CUP v0.11b 20160615 (GIT 4ac7450) Parser Generation Summary -------
+  0 errors and 4 warnings
+  52 terminals, 15 non-terminals, and 65 productions declared, 
+  producing 149 unique parse states.
+  4 terminals declared but not used.
+  0 non-terminals declared but not used.
+  0 productions never reduced.
+  0 conflicts detected (0 expected).
+  Code written to "parser.java", and "sym.java".
+---------------------------------------------------- (CUP v0.11b 20160615 (GIT 4ac7450))
+      -> parser.java and sym.java generated
+[3/4] Compiling Java sources ...
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+      -> Compilation successful
+[4/4] Running NervLang compiler on input.txt ...
+
+--------------------------------------------------------
+========================================================
+  NervLang Compiler Frontend v1.0
+  EVA-themeded compiler - JFlex + JCup integration
+========================================================
+Input file: input.txt
+--------------------------------------------------------
+
+>>> Starting Compilation <<<
+
+[Lexical] Variable declared: INTEGER sync_rate = ...
+[Syntactic] PILOT INTEGER sync_rate = expr; -- OK
+[Semantic] Assigned value to 'sync_rate' of type INTEGER
+[Lexical] Variable declared: REAL power_level = ...
+[Syntactic] PILOT REAL power_level = expr; -- OK
+[Semantic] Assigned value to 'power_level' of type REAL
+[Lexical] Variable declared: BOOLEAN at_field_active = ...
+[Syntactic] PILOT BOOLEAN at_field_active = expr; -- OK
+[Semantic] Assigned value to 'at_field_active' of type BOOLEAN
+[Lexical] Variable declared: TEXT pilot_name = ...
+[Syntactic] PILOT TEXT pilot_name = expr; -- OK
+[Semantic] Assigned value to 'pilot_name' of type TEXT
+[Lexical] Parameter: INTEGER distance
+[Lexical] Variable declared: INTEGER target_distance = ...
+[Syntactic] PILOT INTEGER target_distance = expr; -- OK
+[Semantic] Assigned value to 'target_distance' of type INTEGER
+[Lexical] Variable declared: BOOLEAN enemy_detected = ...
+[Syntactic] PILOT BOOLEAN enemy_detected = expr; -- OK
+[Semantic] Assigned value to 'enemy_detected' of type BOOLEAN
+[Semantic] Comparison: >
+[Syntactic] COMMUNICATE (print) -- OK
+[Semantic] Assignment to 'at_field_active' (type BOOLEAN)
+[Syntactic] COMMUNICATE (print) -- OK
+[Semantic] Arithmetic: +
+[Semantic] Assignment to 'sync_rate' (type INTEGER)
+[Semantic] Arithmetic: -
+[Semantic] Assignment to 'power_level' (type REAL)
+[Syntactic] AT_FIELD/ALTER (if/else) -- OK
+[Semantic] Comparison: >
+[Semantic] Comparison: ==
+[Semantic] Logical: &&
+[Syntactic] COMMUNICATE (print) -- OK
+[Semantic] Arithmetic: -
+[Semantic] Assignment to 'distance' (type INTEGER)
+[Syntactic] LOOP (while) -- OK
+[Lexical] Loop variable declared: INTEGER phase
+[Semantic] Comparison: <
+[Semantic] Comparison: ==
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] AT_FIELD (if) -- OK
+[Semantic] Comparison: ==
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] AT_FIELD (if) -- OK
+[Semantic] Comparison: ==
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] AT_FIELD (if) -- OK
+[Syntactic] MISSION (for) -- OK
+[Semantic] Comparison: >=
+[Semantic] Comparison: >=
+[Semantic] Logical: &&
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] EJECT (break) -- OK
+[Syntactic] AT_FIELD/ALTER (if/else) -- OK
+[Syntactic] SYNC (return) -- OK
+[Syntactic] Method declared: INTEGER engage(...)
+[Lexical] Variable declared: BOOLEAN systems_ok = ...
+[Syntactic] PILOT BOOLEAN systems_ok = expr; -- OK
+[Semantic] Assigned value to 'systems_ok' of type BOOLEAN
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] SYNC (return void) -- OK
+[Syntactic] Method declared: VOID emergency_shutdown(...)
+[Lexical] Parameter: INTEGER sectors
+[Lexical] Variable declared: INTEGER current = ...
+[Syntactic] PILOT INTEGER current = expr; -- OK
+[Semantic] Assigned value to 'current' of type INTEGER
+[Lexical] Loop variable declared: INTEGER i
+[Semantic] Comparison: <
+[Semantic] Comparison: ==
+[Syntactic] PERSIST (continue) -- OK
+[Syntactic] AT_FIELD (if) -- OK
+[Semantic] Arithmetic: +
+[Semantic] Assignment to 'current' (type INTEGER)
+[Syntactic] COMMUNICATE (print) -- OK
+[Syntactic] MISSION (for) -- OK
+[Syntactic] SYNC (return void) -- OK
+[Syntactic] Method declared: VOID patrol(...)
+[Lexical] Class declared: EvaUnit01
+[Syntactic] MAGI EvaUnit01 { ... } -- OK
+
+========================================================
+  Compilation completed successfully!
+========================================================
+--------------------------------------------------------
+
+=== Done ===

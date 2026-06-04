@@ -62,9 +62,10 @@ public class SemanticAnalyzer {
 
     public SymbolEntry lookup(String name, String scope) {
         SymbolEntry e = symbolTable.get(scope + "." + name);
-        if (e == null && !scope.equals("global")) {
+        if (e == null && !scope.equals("global"))
             e = symbolTable.get("global." + name);
-        }
+        if (e == null)
+            e = symbolTable.get("." + name);
         return e;
     }
 
