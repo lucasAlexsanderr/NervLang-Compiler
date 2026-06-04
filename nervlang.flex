@@ -23,7 +23,6 @@ DIGIT           = [0-9]
 INTEGER         = {DIGIT}+
 FLOAT           = {DIGIT}+ \. {DIGIT}+
 IDENTIFIER      = [a-zA-Z_][a-zA-Z0-9_]*
-STRING          = \"([^\"\\n]|\\.)*\"
 LINE_COMMENT    = "//" [^\r\n]*
 BLOCK_COMMENT   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
 
@@ -94,7 +93,7 @@ BLOCK_COMMENT   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
 /* Constants */
 {INTEGER}       { return symbol(sym.INT_LITERAL, new Integer(yytext())); }
 {FLOAT}         { return symbol(sym.FLOAT_LITERAL, new Float(yytext())); }
-{STRING}        { return symbol(sym.STRING_LITERAL, yytext()); }
+\"[^\n\r]*\"   { return symbol(sym.STRING_LITERAL, yytext()); }
 
 /* Identifiers */
 {IDENTIFIER}    { return symbol(sym.IDENTIFIER, yytext()); }

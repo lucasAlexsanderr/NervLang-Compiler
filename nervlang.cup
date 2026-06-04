@@ -1,0 +1,238 @@
+import java_cup.runtime.*;
+import java.io.*;
+
+parser code {: 
+    Scanner s;
+    SemanticAnalyzer sa = new SemanticAnalyzer();
+    parser(Scanner s) { this.s = s; } 
+:};
+
+scan with {: return s.next_token(); :};
+
+terminal MAGI, EVA_UNIT, PILOT, ORDER, MISSION, AT_FIELD, ALTER;
+terminal LOOP, SYNC, EJECT, PERSIST, COMMUNICATE, DEPLOY, VOID;
+terminal INTEGER_TYPE, REAL_TYPE, TEXT_TYPE, BOOLEAN_TYPE;
+terminal TRUE, FALSE;
+terminal PLUS, MINUS, TIMES, DIVIDE, MODULO;
+terminal ASSIGN, EQUALS, NOT_EQUALS;
+terminal LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL;
+terminal AND, OR, NOT;
+terminal INCREMENT, DECREMENT, UMINUS;
+terminal SEMI, COMMA, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET;
+
+terminal Integer INT_LITERAL;
+terminal Float FLOAT_LITERAL;
+terminal String STRING_LITERAL;
+terminal String IDENTIFIER;
+
+non terminal program;
+non terminal class_decl;
+non terminal class_body;
+non terminal member_list;
+non terminal method_decl;
+non terminal method_body;
+non terminal var_decl;
+non terminal stmt;
+non terminal stmt_list;
+non terminal expr;
+non terminal param_list;
+non terminal args_list;
+non terminal String type;
+non terminal assignment;
+non terminal for_init;
+
+precedence left OR;
+precedence left AND;
+precedence left EQUALS, NOT_EQUALS;
+precedence left LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE, MODULO;
+precedence right NOT;
+precedence left UMINUS;
+precedence right ASSIGN;
+
+program ::= class_decl
+  | program class_decl
+  ;
+
+class_decl ::= MAGI IDENTIFIER:cls LBRACE class_body RBRACE
+  {: 
+    System.out.println("[Lexical] Class declared: " + cls);
+    System.out.println("[Syntactic] MAGI " + cls + " { ... } -- OK");
+    sa.setCurrentClass(cls);
+    sa.declareClass(cls, 0, 0);
+  :}
+  ;
+
+class_body ::= member_list ;
+
+member_list ::=
+  | member_list var_decl
+  | member_list method_decl
+  ;
+
+method_decl ::= ORDER type:t IDENTIFIER:mn LPAREN param_list RPAREN method_body
+  {: 
+    System.out.println("[Syntactic] Method declared: " + t + " " + mn + "(...)");
+    sa.declareMethod(mn, t, sa.getCurrentClass(), 0, 0);
+    sa.setCurrentMethod(mn);
+  :}
+  ;
+
+method_body ::= LBRACE stmt_list RBRACE ;
+
+var_decl ::= PILOT type:t IDENTIFIER:vn SEMI
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    sa.declareVar(vn, t, scope, 0, 0);
+    System.out.println("[Lexical] Variable declared: " + t + " " + vn);
+    System.out.println("[Syntactic] PILOT " + t + " " + vn + "; -- OK");
+  :}
+  | PILOT type:t IDENTIFIER:vn ASSIGN expr SEMI
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    sa.declareVar(vn, t, scope, 0, 0);
+    System.out.println("[Lexical] Variable declared: " + t + " " + vn + " = ...");
+    System.out.println("[Syntactic] PILOT " + t + " " + vn + " = expr; -- OK");
+    System.out.println("[Semantic] Assigned value to '" + vn + "' of type " + t);
+  :}
+  ;
+
+type ::= INTEGER_TYPE {: RESULT = "INTEGER"; :}
+  | REAL_TYPE {: RESULT = "REAL"; :}
+  | TEXT_TYPE {: RESULT = "TEXT"; :}
+  | BOOLEAN_TYPE {: RESULT = "BOOLEAN"; :}
+  | VOID {: RESULT = "VOID"; :}
+  ;
+
+stmt_list ::=
+  | stmt_list stmt
+  ;
+
+stmt ::= var_decl
+  | assignment SEMI
+  | IDENTIFIER:fn LPAREN args_list RPAREN SEMI
+  {: System.out.println("[Syntactic] Method call: " + fn + "(...)"); :}
+  | COMMUNICATE LPAREN expr RPAREN SEMI
+  {: System.out.println("[Syntactic] COMMUNICATE (print) -- OK"); :}
+  | AT_FIELD LPAREN expr RPAREN LBRACE stmt_list RBRACE
+  {: System.out.println("[Syntactic] AT_FIELD (if) -- OK"); :}
+  | AT_FIELD LPAREN expr RPAREN LBRACE stmt_list RBRACE ALTER LBRACE stmt_list RBRACE
+  {: System.out.println("[Syntactic] AT_FIELD/ALTER (if/else) -- OK"); :}
+  | LOOP LPAREN expr RPAREN LBRACE stmt_list RBRACE
+  {: System.out.println("[Syntactic] LOOP (while) -- OK"); :}
+  | MISSION LPAREN for_init SEMI expr SEMI assignment RPAREN LBRACE stmt_list RBRACE
+  {: System.out.println("[Syntactic] MISSION (for) -- OK"); :}
+  | SYNC expr SEMI
+  {: System.out.println("[Syntactic] SYNC (return) -- OK"); :}
+  | SYNC SEMI
+  {: System.out.println("[Syntactic] SYNC (return void) -- OK"); :}
+  | EJECT SEMI
+  {: System.out.println("[Syntactic] EJECT (break) -- OK"); :}
+  | PERSIST SEMI
+  {: System.out.println("[Syntactic] PERSIST (continue) -- OK"); :}
+  ;
+
+for_init ::= PILOT type:t IDENTIFIER:vn ASSIGN expr
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    sa.declareVar(vn, t, scope, 0, 0);
+    System.out.println("[Lexical] Loop variable declared: " + t + " " + vn);
+  :}
+  | IDENTIFIER:vn ASSIGN expr
+  {: System.out.println("[Semantic] Loop init assignment to '" + vn + "'"); :}
+  ;
+
+assignment ::= IDENTIFIER:vn ASSIGN expr
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    SemanticAnalyzer.SymbolEntry entry = sa.lookup(vn, scope);
+    if (entry == null)
+      System.out.println("[Semantic Error] Undefined variable '" + vn + "'");
+    else
+      System.out.println("[Semantic] Assignment to '" + vn + "' (type " + entry.type + ")");
+  :}
+  | IDENTIFIER:vn INCREMENT
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    SemanticAnalyzer.SymbolEntry entry = sa.lookup(vn, scope);
+    if (entry == null)
+      System.out.println("[Semantic Error] Undefined variable '" + vn + "'");
+  :}
+  | IDENTIFIER:vn DECREMENT
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    SemanticAnalyzer.SymbolEntry entry = sa.lookup(vn, scope);
+    if (entry == null)
+      System.out.println("[Semantic Error] Undefined variable '" + vn + "'");
+  :}
+  ;
+
+param_list ::=
+  | type:t IDENTIFIER:pn
+  {: 
+    String scope = sa.getCurrentClass() + "." + sa.getCurrentMethod();
+    sa.declareVar(pn, t, scope, 0, 0);
+    // Also declare in class scope for accessibility from method body
+    sa.declareVar(pn, t, sa.getCurrentClass(), 0, 0);
+    System.out.println("[Lexical] Parameter: " + t + " " + pn);
+  :}
+  | param_list COMMA type:t IDENTIFIER:pn
+  {: 
+    String scope = sa.getCurrentClass() + "." + sa.getCurrentMethod();
+    sa.declareVar(pn, t, scope, 0, 0);
+    sa.declareVar(pn, t, sa.getCurrentClass(), 0, 0);
+    System.out.println("[Lexical] Parameter: " + t + " " + pn);
+  :}
+  ;
+
+args_list ::=
+  | expr
+  | args_list COMMA expr
+  ;
+
+expr ::= expr PLUS expr
+  {: System.out.println("[Semantic] Arithmetic: +"); :}
+  | expr MINUS expr
+  {: System.out.println("[Semantic] Arithmetic: -"); :}
+  | expr TIMES expr
+  {: System.out.println("[Semantic] Arithmetic: *"); :}
+  | expr DIVIDE expr
+  {: System.out.println("[Semantic] Arithmetic: /"); :}
+  | expr MODULO expr
+  {: System.out.println("[Semantic] Arithmetic: %"); :}
+  | expr EQUALS expr
+  {: System.out.println("[Semantic] Comparison: =="); :}
+  | expr NOT_EQUALS expr
+  {: System.out.println("[Semantic] Comparison: !="); :}
+  | expr LESS_THAN expr
+  {: System.out.println("[Semantic] Comparison: <"); :}
+  | expr GREATER_THAN expr
+  {: System.out.println("[Semantic] Comparison: >"); :}
+  | expr LESS_EQUAL expr
+  {: System.out.println("[Semantic] Comparison: <="); :}
+  | expr GREATER_EQUAL expr
+  {: System.out.println("[Semantic] Comparison: >="); :}
+  | expr AND expr
+  {: System.out.println("[Semantic] Logical: &&"); :}
+  | expr OR expr
+  {: System.out.println("[Semantic] Logical: ||"); :}
+  | NOT expr
+  {: System.out.println("[Semantic] Logical: !"); :}
+  | MINUS expr %prec UMINUS
+  | LPAREN expr RPAREN
+  | INT_LITERAL
+  | FLOAT_LITERAL
+  | STRING_LITERAL
+  | TRUE
+  | FALSE
+  | IDENTIFIER:vn
+  {: 
+    String scope = sa.getCurrentClass().isEmpty() ? "global" : sa.getCurrentClass();
+    SemanticAnalyzer.SymbolEntry entry = sa.lookup(vn, scope);
+    if (entry == null)
+      System.out.println("[Semantic Error] Undefined variable '" + vn + "'");
+  :}
+  | IDENTIFIER:fn LPAREN args_list RPAREN
+  {: System.out.println("[Semantic] Function call: " + fn + "(...)"); :}
+  ;

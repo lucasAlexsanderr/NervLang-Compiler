@@ -1,0 +1,82 @@
+/*
+ * NervLang Sample Program
+ * EVA Unit-01: Angel Interception Protocol
+ *
+ * Demonstrates: class, methods, variables, if/else, while, for,
+ *               print, break, continue, return, parameters,
+ *               arithmetic, comparison, logical operators
+ */
+
+MAGI EvaUnit01 {
+
+    // Global pilot parameters
+    PILOT INTEGER sync_rate = 40;
+    PILOT REAL power_level = 100.5;
+    PILOT BOOLEAN at_field_active = DESYNCHRONIZED;
+    PILOT TEXT pilot_name = "Shinji";
+
+    // Main engagement method with parameters
+    ORDER INTEGER engage(INTEGER distance) {
+        PILOT INTEGER target_distance = 500;
+        PILOT BOOLEAN enemy_detected = SYNCHRONIZED;
+
+        // Check sync rate
+        AT_FIELD (sync_rate > 50) {
+            COMMUNICATE("Sync rate OK");
+            at_field_active = SYNCHRONIZED;
+        } ALTER {
+            COMMUNICATE("Warning low sync");
+            sync_rate = sync_rate + 10;
+            power_level = power_level - 20.5;
+        }
+
+        // Advance to target using while loop
+        LOOP (distance > target_distance && enemy_detected == SYNCHRONIZED) {
+            COMMUNICATE("Advancing to target");
+            distance = distance - 50;
+        }
+
+        // Attack phases using for loop
+        MISSION (PILOT INTEGER phase = 0; phase < 3; phase++) {
+            AT_FIELD (phase == 0) {
+                COMMUNICATE("Deploying AT Field");
+            }
+            AT_FIELD (phase == 1) {
+                COMMUNICATE("Charging positron rifle");
+            }
+            AT_FIELD (phase == 2) {
+                COMMUNICATE("Firing");
+            }
+        }
+
+        // Final status check
+        AT_FIELD (sync_rate >= 70 && power_level >= 50.0) {
+            COMMUNICATE("Angel neutralized");
+        } ALTER {
+            COMMUNICATE("Mission failed ejecting");
+            EJECT;
+        }
+
+        SYNC sync_rate;
+    }
+
+    // Emergency shutdown method
+    ORDER VOID emergency_shutdown() {
+        PILOT BOOLEAN systems_ok = DESYNCHRONIZED;
+        COMMUNICATE("Emergency shutdown");
+        SYNC;
+    }
+
+    // Patrol method using continue
+    ORDER VOID patrol(INTEGER sectors) {
+        PILOT INTEGER current = 0;
+        MISSION (PILOT INTEGER i = 0; i < sectors; i++) {
+            AT_FIELD (i == 5) {
+                PERSIST;
+            }
+            current = current + 1;
+            COMMUNICATE("Patrolling sector");
+        }
+        SYNC;
+    }
+}
