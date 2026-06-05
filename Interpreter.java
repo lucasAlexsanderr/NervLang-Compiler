@@ -6,53 +6,128 @@ public class Interpreter {
 
     // Token types
     enum TT {
-        MAGI, PILOT, ORDER, AT_FIELD, ALTER, LOOP, MISSION,
-        SYNC, EJECT, PERSIST, COMMUNICATE, VOID,
-        INTEGER_TYPE, REAL_TYPE, TEXT_TYPE, BOOLEAN_TYPE,
-        TRUE, FALSE,
-        PLUS, MINUS, TIMES, DIVIDE, MODULO,
-        ASSIGN, EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL,
-        AND, OR, NOT, INCREMENT, DECREMENT,
-        SEMI, COMMA, LBRACE, RBRACE, LPAREN, RPAREN,
-        INT_LIT, FLOAT_LIT, STRING_LIT, IDENT, EOF
+        MAGI,
+        PILOT,
+        ORDER,
+        AT_FIELD,
+        ALTER,
+        LOOP,
+        MISSION,
+        SYNC,
+        EJECT,
+        PERSIST,
+        COMMUNICATE,
+        VOID,
+        INTEGER_TYPE,
+        REAL_TYPE,
+        TEXT_TYPE,
+        BOOLEAN_TYPE,
+        TRUE,
+        FALSE,
+        PLUS,
+        MINUS,
+        TIMES,
+        DIVIDE,
+        MODULO,
+        ASSIGN,
+        EQUALS,
+        NOT_EQUALS,
+        LESS_THAN,
+        GREATER_THAN,
+        LESS_EQUAL,
+        GREATER_EQUAL,
+        AND,
+        OR,
+        NOT,
+        INCREMENT,
+        DECREMENT,
+        SEMI,
+        COMMA,
+        LBRACE,
+        RBRACE,
+        LPAREN,
+        RPAREN,
+        INT_LIT,
+        FLOAT_LIT,
+        STRING_LIT,
+        IDENT,
+        EOF,
     }
 
     static class Token {
+
         TT type;
         String value;
         int line;
-        Token(TT t, String v, int l) { type = t; value = v; line = l; }
-        public String toString() { return type + "(" + value + ")"; }
+
+        Token(TT t, String v, int l) {
+            type = t;
+            value = v;
+            line = l;
+        }
+
+        public String toString() {
+            return type + "(" + value + ")";
+        }
     }
 
     // ========== TOKENIZER ==========
 
     static final String[][] KEYWORD_MAP = {
-        {"MAGI","MAGI"},{"PILOT","PILOT"},{"ORDER","ORDER"},
-        {"AT_FIELD","AT_FIELD"},{"ALTER","ALTER"},{"LOOP","LOOP"},
-        {"MISSION","MISSION"},{"SYNC","SYNC"},{"EJECT","EJECT"},
-        {"PERSIST","PERSIST"},{"COMMUNICATE","COMMUNICATE"},
-        {"VOID","VOID"},
-        {"INTEGER","INTEGER_TYPE"},{"REAL","REAL_TYPE"},
-        {"TEXT","TEXT_TYPE"},{"BOOLEAN","BOOLEAN_TYPE"},
-        {"SYNCHRONIZED","TRUE"},{"DESYNCHRONIZED","FALSE"}
+        { "MAGI", "MAGI" },
+        { "PILOT", "PILOT" },
+        { "ORDER", "ORDER" },
+        { "AT_FIELD", "AT_FIELD" },
+        { "ALTER", "ALTER" },
+        { "LOOP", "LOOP" },
+        { "MISSION", "MISSION" },
+        { "SYNC", "SYNC" },
+        { "EJECT", "EJECT" },
+        { "PERSIST", "PERSIST" },
+        { "COMMUNICATE", "COMMUNICATE" },
+        { "VOID", "VOID" },
+        { "INTEGER", "INTEGER_TYPE" },
+        { "REAL", "REAL_TYPE" },
+        { "TEXT", "TEXT_TYPE" },
+        { "BOOLEAN", "BOOLEAN_TYPE" },
+        { "SYNCHRONIZED", "TRUE" },
+        { "DESYNCHRONIZED", "FALSE" },
     };
 
     static List<Token> tokenize(String source) {
         List<Token> tokens = new ArrayList<>();
-        int i = 0, line = 1;
+        int i = 0,
+            line = 1;
         while (i < source.length()) {
             char c = source.charAt(i);
-            if (c == '\n') { line++; i++; continue; }
-            if (c == ' ' || c == '\t' || c == '\r') { i++; continue; }
+            if (c == '\n') {
+                line++;
+                i++;
+                continue;
+            }
+            if (c == ' ' || c == '\t' || c == '\r') {
+                i++;
+                continue;
+            }
             // Comments
-            if (c == '/' && i+1 < source.length() && source.charAt(i+1) == '/') {
+            if (
+                c == '/' &&
+                i + 1 < source.length() &&
+                source.charAt(i + 1) == '/'
+            ) {
                 while (i < source.length() && source.charAt(i) != '\n') i++;
                 continue;
             }
-            if (c == '/' && i+1 < source.length() && source.charAt(i+1) == '*') {
+            if (
+                c == '/' &&
+                i + 1 < source.length() &&
+                source.charAt(i + 1) == '*'
+            ) {
                 i += 2;
-                while (i+1 < source.length() && !(source.charAt(i) == '*' && source.charAt(i+1) == '/')) {
+                while (
+                    i + 1 < source.length() &&
+                    !(source.charAt(i) == '*' && source.charAt(i + 1) == '/')
+                ) {
                     if (source.charAt(i) == '\n') line++;
                     i++;
                 }
@@ -61,9 +136,13 @@ public class Interpreter {
             }
             // String literal
             if (c == '"') {
-                int start = i; i++;
+                int start = i;
+                i++;
                 StringBuilder sb = new StringBuilder();
-                while (i < source.length() && source.charAt(i) != '"') { sb.append(source.charAt(i)); i++; }
+                while (i < source.length() && source.charAt(i) != '"') {
+                    sb.append(source.charAt(i));
+                    i++;
+                }
                 i++; // closing "
                 tokens.add(new Token(TT.STRING_LIT, sb.toString(), line));
                 continue;
@@ -71,60 +150,125 @@ public class Interpreter {
             // Number
             if (Character.isDigit(c)) {
                 int start = i;
-                while (i < source.length() && (Character.isDigit(source.charAt(i)) || source.charAt(i) == '.')) i++;
+                while (
+                        i < source.length() &&
+                        (Character.isDigit(source.charAt(i)) ||
+                            source.charAt(i) == '.')
+                    )
+                    i++;
                 String num = source.substring(start, i);
-                if (num.contains("."))
-                    tokens.add(new Token(TT.FLOAT_LIT, num, line));
-                else
-                    tokens.add(new Token(TT.INT_LIT, num, line));
+                if (num.contains(".")) tokens.add(
+                    new Token(TT.FLOAT_LIT, num, line)
+                );
+                else tokens.add(new Token(TT.INT_LIT, num, line));
                 continue;
             }
             // Identifier / keyword
             if (Character.isLetter(c) || c == '_') {
                 int start = i;
-                while (i < source.length() && (Character.isLetterOrDigit(source.charAt(i)) || source.charAt(i) == '_')) i++;
+                while (
+                        i < source.length() &&
+                        (Character.isLetterOrDigit(source.charAt(i)) ||
+                            source.charAt(i) == '_')
+                    )
+                    i++;
                 String word = source.substring(start, i);
                 boolean found = false;
                 for (String[] kw : KEYWORD_MAP) {
                     if (kw[0].equals(word)) {
                         tokens.add(new Token(TT.valueOf(kw[1]), word, line));
-                        found = true; break;
+                        found = true;
+                        break;
                     }
                 }
                 if (!found) tokens.add(new Token(TT.IDENT, word, line));
                 continue;
             }
             // Two-char operators
-            if (i+1 < source.length()) {
-                String two = "" + c + source.charAt(i+1);
+            if (i + 1 < source.length()) {
+                String two = "" + c + source.charAt(i + 1);
                 switch (two) {
-                    case "==": tokens.add(new Token(TT.EQUALS, "==", line)); i+=2; continue;
-                    case "!=": tokens.add(new Token(TT.NOT_EQUALS, "!=", line)); i+=2; continue;
-                    case "<=": tokens.add(new Token(TT.LESS_EQUAL, "<=", line)); i+=2; continue;
-                    case ">=": tokens.add(new Token(TT.GREATER_EQUAL, ">=", line)); i+=2; continue;
-                    case "&&": tokens.add(new Token(TT.AND, "&&", line)); i+=2; continue;
-                    case "||": tokens.add(new Token(TT.OR, "||", line)); i+=2; continue;
-                    case "++": tokens.add(new Token(TT.INCREMENT, "++", line)); i+=2; continue;
-                    case "--": tokens.add(new Token(TT.DECREMENT, "--", line)); i+=2; continue;
+                    case "==":
+                        tokens.add(new Token(TT.EQUALS, "==", line));
+                        i += 2;
+                        continue;
+                    case "!=":
+                        tokens.add(new Token(TT.NOT_EQUALS, "!=", line));
+                        i += 2;
+                        continue;
+                    case "<=":
+                        tokens.add(new Token(TT.LESS_EQUAL, "<=", line));
+                        i += 2;
+                        continue;
+                    case ">=":
+                        tokens.add(new Token(TT.GREATER_EQUAL, ">=", line));
+                        i += 2;
+                        continue;
+                    case "&&":
+                        tokens.add(new Token(TT.AND, "&&", line));
+                        i += 2;
+                        continue;
+                    case "||":
+                        tokens.add(new Token(TT.OR, "||", line));
+                        i += 2;
+                        continue;
+                    case "++":
+                        tokens.add(new Token(TT.INCREMENT, "++", line));
+                        i += 2;
+                        continue;
+                    case "--":
+                        tokens.add(new Token(TT.DECREMENT, "--", line));
+                        i += 2;
+                        continue;
                 }
             }
             // Single-char operators/delimiters
             switch (c) {
-                case '+': tokens.add(new Token(TT.PLUS, "+", line)); break;
-                case '-': tokens.add(new Token(TT.MINUS, "-", line)); break;
-                case '*': tokens.add(new Token(TT.TIMES, "*", line)); break;
-                case '/': tokens.add(new Token(TT.DIVIDE, "/", line)); break;
-                case '%': tokens.add(new Token(TT.MODULO, "%", line)); break;
-                case '=': tokens.add(new Token(TT.ASSIGN, "=", line)); break;
-                case '<': tokens.add(new Token(TT.LESS_THAN, "<", line)); break;
-                case '>': tokens.add(new Token(TT.GREATER_THAN, ">", line)); break;
-                case '!': tokens.add(new Token(TT.NOT, "!", line)); break;
-                case ';': tokens.add(new Token(TT.SEMI, ";", line)); break;
-                case ',': tokens.add(new Token(TT.COMMA, ",", line)); break;
-                case '{': tokens.add(new Token(TT.LBRACE, "{", line)); break;
-                case '}': tokens.add(new Token(TT.RBRACE, "}", line)); break;
-                case '(': tokens.add(new Token(TT.LPAREN, "(", line)); break;
-                case ')': tokens.add(new Token(TT.RPAREN, ")", line)); break;
+                case '+':
+                    tokens.add(new Token(TT.PLUS, "+", line));
+                    break;
+                case '-':
+                    tokens.add(new Token(TT.MINUS, "-", line));
+                    break;
+                case '*':
+                    tokens.add(new Token(TT.TIMES, "*", line));
+                    break;
+                case '/':
+                    tokens.add(new Token(TT.DIVIDE, "/", line));
+                    break;
+                case '%':
+                    tokens.add(new Token(TT.MODULO, "%", line));
+                    break;
+                case '=':
+                    tokens.add(new Token(TT.ASSIGN, "=", line));
+                    break;
+                case '<':
+                    tokens.add(new Token(TT.LESS_THAN, "<", line));
+                    break;
+                case '>':
+                    tokens.add(new Token(TT.GREATER_THAN, ">", line));
+                    break;
+                case '!':
+                    tokens.add(new Token(TT.NOT, "!", line));
+                    break;
+                case ';':
+                    tokens.add(new Token(TT.SEMI, ";", line));
+                    break;
+                case ',':
+                    tokens.add(new Token(TT.COMMA, ",", line));
+                    break;
+                case '{':
+                    tokens.add(new Token(TT.LBRACE, "{", line));
+                    break;
+                case '}':
+                    tokens.add(new Token(TT.RBRACE, "}", line));
+                    break;
+                case '(':
+                    tokens.add(new Token(TT.LPAREN, "(", line));
+                    break;
+                case ')':
+                    tokens.add(new Token(TT.RPAREN, ")", line));
+                    break;
             }
             i++;
         }
@@ -142,14 +286,29 @@ public class Interpreter {
     Map<String, MethodDef> methods = new HashMap<>();
     String className;
 
-    Token peek() { return tokens.get(pos); }
-    Token advance() { return tokens.get(pos++); }
-    void expect(TT t) { if (peek().type != t) error("Expected " + t + " but got " + peek()); advance(); }
-    void error(String msg) { throw new RuntimeException("[Runtime Error] Line " + peek().line + ": " + msg); }
+    Token peek() {
+        return tokens.get(pos);
+    }
+
+    Token advance() {
+        return tokens.get(pos++);
+    }
+
+    void expect(TT t) {
+        if (peek().type != t) error("Expected " + t + " but got " + peek());
+        advance();
+    }
+
+    void error(String msg) {
+        throw new RuntimeException(
+            "[Runtime Error] Line " + peek().line + ": " + msg
+        );
+    }
 
     // ========== AST NODES ==========
 
     static class MethodDef {
+
         String name, retType;
         List<String> paramNames = new ArrayList<>();
         List<String> paramTypes = new ArrayList<>();
@@ -158,8 +317,17 @@ public class Interpreter {
     }
 
     // ========== EXECUTION FLOW CONTROLS ==========
-    static class ReturnException extends RuntimeException { Object val; ReturnException(Object v) { val = v; } }
+    static class ReturnException extends RuntimeException {
+
+        Object val;
+
+        ReturnException(Object v) {
+            val = v;
+        }
+    }
+
     static class BreakException extends RuntimeException {}
+
     static class ContinueException extends RuntimeException {}
 
     // ========== MAIN PARSE + EXEC ==========
@@ -169,9 +337,13 @@ public class Interpreter {
         pos = 0;
 
         System.out.println();
-        System.out.println("========================================================");
+        System.out.println(
+            "========================================================"
+        );
         System.out.println("  NervLang Interpreter - Execution Phase");
-        System.out.println("========================================================");
+        System.out.println(
+            "========================================================"
+        );
         System.out.println();
 
         // Parse: MAGI ClassName { members }
@@ -218,16 +390,23 @@ public class Interpreter {
             for (String k : methods.keySet()) {
                 MethodDef m = methods.get(k);
                 if (!m.paramNames.isEmpty()) {
-                    System.out.println("--- Calling " + k + "(" + String.join(", ", m.paramNames) + ") ---");
+                    System.out.println(
+                        "--- Calling " +
+                            k +
+                            "(" +
+                            String.join(", ", m.paramNames) +
+                            ") ---"
+                    );
                     Object[] args = new Object[m.paramNames.size()];
                     for (int i = 0; i < args.length; i++) {
                         String t = m.paramTypes.get(i);
                         // Use context-aware defaults based on method name hints
                         if (t.equals("INTEGER")) {
-                            if (k.contains("engage") || m.paramNames.get(i).contains("distance"))
-                                args[i] = 1500;
-                            else
-                                args[i] = 10;
+                            if (
+                                k.contains("engage") ||
+                                m.paramNames.get(i).contains("distance")
+                            ) args[i] = 1500;
+                            else args[i] = 10;
                         } else if (t.equals("REAL")) args[i] = 50.0;
                         else if (t.equals("TEXT")) args[i] = "NERV";
                         else if (t.equals("BOOLEAN")) args[i] = true;
@@ -240,9 +419,13 @@ public class Interpreter {
 
         System.out.println("--- Execution Complete ---");
         System.out.println();
-        System.out.println("========================================================");
+        System.out.println(
+            "========================================================"
+        );
         System.out.println("  NervLang program finished successfully");
-        System.out.println("========================================================");
+        System.out.println(
+            "========================================================"
+        );
     }
 
     void parseClassVar() {
@@ -310,11 +493,23 @@ public class Interpreter {
     // ========== EXPRESSION PARSING (for constant init values only) ==========
 
     Object parseConstExpr() {
-        if (peek().type == TT.INT_LIT) { return Integer.parseInt(advance().value); }
-        if (peek().type == TT.FLOAT_LIT) { return Double.parseDouble(advance().value); }
-        if (peek().type == TT.STRING_LIT) { return advance().value; }
-        if (peek().type == TT.TRUE) { advance(); return true; }
-        if (peek().type == TT.FALSE) { advance(); return false; }
+        if (peek().type == TT.INT_LIT) {
+            return Integer.parseInt(advance().value);
+        }
+        if (peek().type == TT.FLOAT_LIT) {
+            return Double.parseDouble(advance().value);
+        }
+        if (peek().type == TT.STRING_LIT) {
+            return advance().value;
+        }
+        if (peek().type == TT.TRUE) {
+            advance();
+            return true;
+        }
+        if (peek().type == TT.FALSE) {
+            advance();
+            return false;
+        }
         if (peek().type == TT.IDENT) {
             // Could be a reference to a previously declared variable
             String n = advance().value;
@@ -329,7 +524,10 @@ public class Interpreter {
 
     Object callMethod(String name, Object[] args) {
         MethodDef m = methods.get(name);
-        if (m == null) { error("Undefined method: " + name); return null; }
+        if (m == null) {
+            error("Undefined method: " + name);
+            return null;
+        }
 
         // Save and set up local env
         Map<String, Object> savedLocal = localEnv;
@@ -364,7 +562,8 @@ public class Interpreter {
     void executeStatement() {
         TT t = peek().type;
 
-        if (t == TT.PILOT) { // variable declaration
+        if (t == TT.PILOT) {
+            // variable declaration
             advance();
             String type = advance().value;
             String name = advance().value;
@@ -377,33 +576,41 @@ public class Interpreter {
                 localEnv.put(name, defaultValue(type));
                 expect(TT.SEMI);
             }
-        }
-        else if (t == TT.COMMUNICATE) { // print
+        } else if (t == TT.COMMUNICATE) {
+            // print
             advance();
             expect(TT.LPAREN);
             Object val = evalExpr();
             expect(TT.RPAREN);
             expect(TT.SEMI);
             System.out.println(val);
-        }
-        else if (t == TT.AT_FIELD) { // if / if-else
+        } else if (t == TT.AT_FIELD) {
+            // if / if-else
             advance();
             expect(TT.LPAREN);
             Object cond = evalExpr();
             expect(TT.RPAREN);
             expect(TT.LBRACE);
+
             if (toBool(cond)) {
-                execBlock();
+                execBlock(); // Executa o bloco IF
+                // CORREÇÃO: Ignorar o ALTER se o IF foi executado
+                if (peek().type == TT.ALTER) {
+                    advance();
+                    expect(TT.LBRACE);
+                    skipBlock();
+                }
             } else {
-                skipBlock();
+                skipBlock(); // Pula o bloco IF
+                // Executa o ALTER se o IF foi falso
                 if (peek().type == TT.ALTER) {
                     advance();
                     expect(TT.LBRACE);
                     execBlock();
                 }
             }
-        }
-        else if (t == TT.LOOP) { // while
+        } else if (t == TT.LOOP) {
+            // while
             advance();
             expect(TT.LPAREN);
             int condStart = pos;
@@ -427,11 +634,14 @@ public class Interpreter {
                     while (pos < bodyEnd) {
                         executeStatement();
                     }
-                } catch (BreakException e) { break; }
-                catch (ContinueException e) { /* continue loop */ }
+                } catch (BreakException e) {
+                    break;
+                } catch (ContinueException e) {
+                    /* continue loop */
+                }
             }
-        }
-        else if (t == TT.MISSION) { // for
+        } else if (t == TT.MISSION) {
+            // for
             advance();
             expect(TT.LPAREN);
 
@@ -491,8 +701,11 @@ public class Interpreter {
                     while (pos < bodyEnd) {
                         executeStatement();
                     }
-                } catch (BreakException e) { break; }
-                catch (ContinueException e) { /* skip to step */ }
+                } catch (BreakException e) {
+                    break;
+                } catch (ContinueException e) {
+                    /* skip to step */
+                }
 
                 // Step
                 int savedPos = pos;
@@ -500,8 +713,8 @@ public class Interpreter {
                 executeStep();
                 pos = savedPos;
             }
-        }
-        else if (t == TT.SYNC) { // return
+        } else if (t == TT.SYNC) {
+            // return
             advance();
             if (peek().type == TT.SEMI) {
                 advance();
@@ -511,18 +724,17 @@ public class Interpreter {
                 expect(TT.SEMI);
                 throw new ReturnException(val);
             }
-        }
-        else if (t == TT.EJECT) { // break
+        } else if (t == TT.EJECT) {
+            // break
             advance();
             expect(TT.SEMI);
             throw new BreakException();
-        }
-        else if (t == TT.PERSIST) { // continue
+        } else if (t == TT.PERSIST) {
+            // continue
             advance();
             expect(TT.SEMI);
             throw new ContinueException();
-        }
-        else if (t == TT.IDENT) {
+        } else if (t == TT.IDENT) {
             String name = advance().value;
             if (peek().type == TT.ASSIGN) {
                 advance();
@@ -532,21 +744,31 @@ public class Interpreter {
             } else if (peek().type == TT.INCREMENT) {
                 advance();
                 Object cur = localEnv.getOrDefault(name, 0);
-                if (cur instanceof Double) localEnv.put(name, (Double)cur + 1.0);
+                if (cur instanceof Double) localEnv.put(
+                    name,
+                    (Double) cur + 1.0
+                );
                 else localEnv.put(name, toInt(cur) + 1);
                 expect(TT.SEMI);
             } else if (peek().type == TT.DECREMENT) {
                 advance();
                 Object cur = localEnv.getOrDefault(name, 0);
-                if (cur instanceof Double) localEnv.put(name, (Double)cur - 1.0);
+                if (cur instanceof Double) localEnv.put(
+                    name,
+                    (Double) cur - 1.0
+                );
                 else localEnv.put(name, toInt(cur) - 1);
                 expect(TT.SEMI);
-            } else if (peek().type == TT.LPAREN) { // method call
+            } else if (peek().type == TT.LPAREN) {
+                // method call
                 advance();
                 List<Object> args = new ArrayList<>();
                 if (peek().type != TT.RPAREN) {
                     args.add(evalExpr());
-                    while (peek().type == TT.COMMA) { advance(); args.add(evalExpr()); }
+                    while (peek().type == TT.COMMA) {
+                        advance();
+                        args.add(evalExpr());
+                    }
                 }
                 expect(TT.RPAREN);
                 expect(TT.SEMI);
@@ -554,8 +776,7 @@ public class Interpreter {
             } else {
                 error("Unexpected after identifier: " + peek());
             }
-        }
-        else {
+        } else {
             error("Unknown statement: " + peek());
         }
     }
@@ -565,12 +786,12 @@ public class Interpreter {
         if (peek().type == TT.INCREMENT) {
             advance();
             Object cur = localEnv.getOrDefault(name, 0);
-            if (cur instanceof Double) localEnv.put(name, (Double)cur + 1.0);
+            if (cur instanceof Double) localEnv.put(name, (Double) cur + 1.0);
             else localEnv.put(name, toInt(cur) + 1);
         } else if (peek().type == TT.DECREMENT) {
             advance();
             Object cur = localEnv.getOrDefault(name, 0);
-            if (cur instanceof Double) localEnv.put(name, (Double)cur - 1.0);
+            if (cur instanceof Double) localEnv.put(name, (Double) cur - 1.0);
             else localEnv.put(name, toInt(cur) - 1);
         } else if (peek().type == TT.ASSIGN) {
             advance();
@@ -601,7 +822,10 @@ public class Interpreter {
         int depth = 1;
         while (true) {
             if (peek().type == TT.LPAREN) depth++;
-            if (peek().type == TT.RPAREN) { depth--; if (depth == 0) break; }
+            if (peek().type == TT.RPAREN) {
+                depth--;
+                if (depth == 0) break;
+            }
             advance();
         }
         expect(TT.RPAREN);
@@ -638,19 +862,23 @@ public class Interpreter {
         if (peek().type == TT.EQUALS) {
             advance();
             Object right = evalComparison();
-            if (left instanceof Number && right instanceof Number)
-                return ((Number)left).doubleValue() == ((Number)right).doubleValue();
-            if (left instanceof Boolean && right instanceof Boolean)
-                return left.equals(right);
+            if (left instanceof Number && right instanceof Number) return (
+                ((Number) left).doubleValue() == ((Number) right).doubleValue()
+            );
+            if (
+                left instanceof Boolean && right instanceof Boolean
+            ) return left.equals(right);
             return Objects.equals(left, right);
         }
         if (peek().type == TT.NOT_EQUALS) {
             advance();
             Object right = evalComparison();
-            if (left instanceof Number && right instanceof Number)
-                return ((Number)left).doubleValue() != ((Number)right).doubleValue();
-            if (left instanceof Boolean && right instanceof Boolean)
-                return !left.equals(right);
+            if (left instanceof Number && right instanceof Number) return (
+                ((Number) left).doubleValue() != ((Number) right).doubleValue()
+            );
+            if (
+                left instanceof Boolean && right instanceof Boolean
+            ) return !left.equals(right);
             return !Objects.equals(left, right);
         }
         return left;
@@ -685,12 +913,10 @@ public class Interpreter {
             if (left instanceof String && op == TT.PLUS) {
                 left = left + toString(right);
             } else {
-                if (left instanceof Double || right instanceof Double)
-                    left = toDouble(left) + (op == TT.PLUS ? 1 : -1) * toDouble(right);
-                else if (op == TT.PLUS)
-                    left = toInt(left) + toInt(right);
-                else
-                    left = toInt(left) - toInt(right);
+                if (left instanceof Double || right instanceof Double) left =
+                    toDouble(left) + (op == TT.PLUS ? 1 : -1) * toDouble(right);
+                else if (op == TT.PLUS) left = toInt(left) + toInt(right);
+                else left = toInt(left) - toInt(right);
             }
         }
         return left;
@@ -698,7 +924,11 @@ public class Interpreter {
 
     Object evalMulDiv() {
         Object left = evalUnary();
-        while (peek().type == TT.TIMES || peek().type == TT.DIVIDE || peek().type == TT.MODULO) {
+        while (
+            peek().type == TT.TIMES ||
+            peek().type == TT.DIVIDE ||
+            peek().type == TT.MODULO
+        ) {
             TT op = advance().type;
             Object right = evalUnary();
             if (left instanceof Double || right instanceof Double) {
@@ -720,7 +950,7 @@ public class Interpreter {
         if (peek().type == TT.MINUS) {
             advance();
             Object val = evalPrimary();
-            if (val instanceof Double) return -((Double)val);
+            if (val instanceof Double) return -((Double) val);
             return -toInt(val);
         }
         if (peek().type == TT.NOT) {
@@ -735,8 +965,14 @@ public class Interpreter {
         if (t == TT.INT_LIT) return Integer.parseInt(advance().value);
         if (t == TT.FLOAT_LIT) return Double.parseDouble(advance().value);
         if (t == TT.STRING_LIT) return advance().value;
-        if (t == TT.TRUE) { advance(); return true; }
-        if (t == TT.FALSE) { advance(); return false; }
+        if (t == TT.TRUE) {
+            advance();
+            return true;
+        }
+        if (t == TT.FALSE) {
+            advance();
+            return false;
+        }
         if (t == TT.LPAREN) {
             advance();
             Object val = evalExpr();
@@ -750,14 +986,19 @@ public class Interpreter {
                 List<Object> args = new ArrayList<>();
                 if (peek().type != TT.RPAREN) {
                     args.add(evalExpr());
-                    while (peek().type == TT.COMMA) { advance(); args.add(evalExpr()); }
+                    while (peek().type == TT.COMMA) {
+                        advance();
+                        args.add(evalExpr());
+                    }
                 }
                 expect(TT.RPAREN);
                 Object result = callMethod(name, args.toArray());
                 return result != null ? result : 0;
             }
             // Variable lookup
-            if (localEnv != null && localEnv.containsKey(name)) return localEnv.get(name);
+            if (
+                localEnv != null && localEnv.containsKey(name)
+            ) return localEnv.get(name);
             if (classEnv.containsKey(name)) return classEnv.get(name);
             error("Undefined variable: " + name);
         }
@@ -768,25 +1009,25 @@ public class Interpreter {
     // ========== CONVERSION HELPERS ==========
 
     double toDouble(Object o) {
-        if (o instanceof Double) return (Double)o;
-        if (o instanceof Integer) return (Integer)o;
+        if (o instanceof Double) return (Double) o;
+        if (o instanceof Integer) return (Integer) o;
         return Double.parseDouble(o.toString());
     }
 
     int toInt(Object o) {
-        if (o instanceof Integer) return (Integer)o;
-        if (o instanceof Double) return (int)((double)(Double)o);
+        if (o instanceof Integer) return (Integer) o;
+        if (o instanceof Double) return (int) ((double) (Double) o);
         return Integer.parseInt(o.toString());
     }
 
     Number toNum(Object o) {
-        if (o instanceof Number) return (Number)o;
+        if (o instanceof Number) return (Number) o;
         return 0;
     }
 
     boolean toBool(Object o) {
-        if (o instanceof Boolean) return (Boolean)o;
-        if (o instanceof Number) return ((Number)o).doubleValue() != 0;
+        if (o instanceof Boolean) return (Boolean) o;
+        if (o instanceof Number) return ((Number) o).doubleValue() != 0;
         return o != null;
     }
 
@@ -800,7 +1041,9 @@ public class Interpreter {
     public static void main(String[] args) {
         String file = (args.length > 0) ? args[0] : "input.txt";
         try {
-            String source = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file)));
+            String source = new String(
+                java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(file))
+            );
             new Interpreter().run(source);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());

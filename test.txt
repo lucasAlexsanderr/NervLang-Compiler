@@ -1,0 +1,36 @@
+MAGI SyncTest {
+
+    ORDER VOID main() {
+        COMMUNICATE("--- INICIANDO PROTOCOLO DE CONEXAO ---");
+
+        PILOT INTEGER sync_rate = 25;
+        PILOT BOOLEAN pilot_ready = SYNCHRONIZED;
+        PILOT TEXT pilot_name = "Ikari Shinji";
+
+        COMMUNICATE("Piloto detectado:");
+        COMMUNICATE(pilot_name);
+
+        COMMUNICATE("Calibrando conexao neural...");
+
+        // Loop for simulando as fases de calibração
+        MISSION (PILOT INTEGER phase = 1; phase <= 3; phase++) {
+            COMMUNICATE("Fase de calibracao:");
+            COMMUNICATE(phase);
+            sync_rate = sync_rate + 15;
+        }
+
+        COMMUNICATE("Taxa de sincronizacao final atingida:");
+        COMMUNICATE(sync_rate);
+
+        // Condicional verificando o nível de sincronização
+        AT_FIELD (sync_rate > 60) {
+            COMMUNICATE("Status: PADRAO AZUL. Sincronizacao estavel.");
+            COMMUNICATE("Lancamento autorizado.");
+        } ALTER {
+            COMMUNICATE("Status: PADRAO LARANJA. Risco de Berserk.");
+            COMMUNICATE("Abortar lancamento imeditamente.");
+        }
+
+        SYNC;
+    }
+}
