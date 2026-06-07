@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NervLang | Sistema MAGI</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script> <style>
+        :root {
+            --bg-color: #090a0f;
+            --magi-red: #ff2a2a;
+            --magi-orange: #ff8c00;
+            --terminal-green: #33ff33;
+            --glass-bg: rgba(15, 16, 26, 0.85);
+            --border-glow: rgba(255, 42, 42, 0.4);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255, 42, 42, 0.05) 0%, transparent 60%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100vw 100vh, 30px 30px, 30px 30px;
+            color: #e0e6f8;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .window-container {
+            display: none;
+            width: 85%;
+            max-width: 1300px;
+            height: 85vh;
+            background: var(--glass-bg);
+            border: 1px solid var(--magi-red);
+            border-radius: 8px;
+            box-shadow: 0 0 20px var(--border-glow), inset 0 0 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            animation: bootUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .window-container.active { display: flex; }
+
+        .title-bar {
+            background: rgba(255, 42, 42, 0.1);
+            border-bottom: 1px solid var(--magi-red);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--magi-red);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .content {
+            padding: 40px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .split-view {
+            display: flex;
+            gap: 40px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .text-side { flex: 1; }
+        .code-side { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+        h1 {
+            color: var(--magi-red);
+            font-size: 2.8rem;
+            margin: 0 0 15px 0;
+            text-shadow: 0 0 10px var(--border-glow);
+        }
+
+        h2 { color: var(--magi-orange); font-size: 1.4rem; margin-bottom: 30px; }
+
+        p, li { font-size: 1.1rem; line-height: 1.6; }
+        ul { list-style: none; padding-left: 0; }
+        li::before { content: "» "; color: var(--magi-red); font-weight: bold; }
+
+        .highlight { color: var(--terminal-green); }
+        .badge { background: var(--magi-red); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;}
+
+        pre {
+            background: #1e1e2e !important;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            width: 100%;
+            max-height: 60vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            z-index: 998;
+        }
+
+        @keyframes bootUp {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window-container active">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM_V1.0</span>
+            <span>[ INICIALIZAÇÃO ]</span>
+        </div>
+        <div class="content" style="align-items: center; text-align: center;">
+            <h1 style="font-size: 4.5rem; margin-bottom: 0;">NERVLANG</h1>
+            <h2 style="font-size: 2rem; color: #a0a0b0; margin-top: 10px;">Compiler Frontend & AST Interpreter</h2>
+            <div style="margin-top: 40px; border: 1px solid var(--magi-red); padding: 20px 40px; background: rgba(255,42,42,0.05);">
+                <p style="font-size: 1.3rem; margin: 0;"><strong>Engenharia de Software por:</strong> Lucas Alexsander e Vinicius Costa</p>
+                <p style="color: var(--magi-orange); margin-top: 10px;">Universidade de Fortaleza (UNIFOR)</p>
+            </div>
+            <p class="highlight" style="margin-top: 50px; animation: blink 1s infinite;">[ Pressione ESPAÇO para Iniciar a Apresentação ]</p>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // ARQUITETURA</span>
+            <span>[ VISAO GERAL ]</span>
+        </div>
+        <div class="content">
+            <h1 style="text-align: center;">O Pipeline de 4 Estágios</h1>
+            <h2 style="text-align: center;">Superando os Requisitos Básicos</h2>
+            <div style="display: flex; justify-content: space-around; margin-top: 40px; text-align: center;">
+                <div style="flex: 1; padding: 20px;">
+                    <h3 style="color: var(--magi-red);">1. LÉXICO</h3>
+                    <p>JFlex</p>
+                    <p style="font-size: 0.9rem; color: #a0a0b0;">Converte caracteres brutos em <strong>Tokens</strong>. Elimina comentários e espaços.</p>
+                </div>
+                <div style="flex: 1; padding: 20px;">
+                    <h3 style="color: var(--magi-red);">2. SINTÁTICO</h3>
+                    <p>JCup</p>
+                    <p style="font-size: 0.9rem; color: #a0a0b0;">Analisa a ordem dos tokens. Constrói a <strong>Árvore Sintática</strong> do código.</p>
+                </div>
+                <div style="flex: 1; padding: 20px;">
+                    <h3 style="color: var(--magi-red);">3. SEMÂNTICO</h3>
+                    <p>Tabela de Símbolos</p>
+                    <p style="font-size: 0.9rem; color: #a0a0b0;">Garante a lógica: Tipagem, declaração prévia e controle de escopo (Java).</p>
+                </div>
+                <div style="flex: 1; padding: 20px; border: 1px solid var(--terminal-green); background: rgba(51, 255, 51, 0.05);">
+                    <h3 style="color: var(--terminal-green);">4. EXECUÇÃO <span class="badge">DIFERENCIAL</span></h3>
+                    <p>AST Interpreter</p>
+                    <p style="font-size: 0.9rem; color: #a0a0b0;">Navega na árvore sintática e <strong>executa as instruções no mundo real.</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // JFLEX</span>
+            <span>[ ESTÁGIO 1: LÉXICO ]</span>
+        </div>
+        <div class="content">
+            <div class="split-view">
+                <div class="text-side">
+                    <h1>O Dicionário da NERV</h1>
+                    <h2>Mapeando Temática em Tokens</h2>
+                    <ul>
+                        <li>O Analisador Léxico não entende lógica, apenas agrupa caracteres.</li>
+                        <li><strong>Identidade Visual:</strong> Substituímos palavras comuns (`int`, `if`) pelo jargão da série (`PILOT`, `AT_FIELD`).</li>
+                        <li><strong>Expressões Regulares (Regex):</strong> Identificação dinâmica de números, identificadores e strings.</li>
+                        <li>O Scanner gerado possui <strong>164 estados DFA otimizados</strong>.</li>
+                    </ul>
+                </div>
+                <div class="code-side">
+<pre><code class="language-java">/* Fragmento de nervlang.flex */
+<YYINITIAL> {
+  /* Keywords Temáticas */
+  "MAGI"           { return symbol(sym.MAGI); }
+  "PILOT"          { return symbol(sym.PILOT); }
+  "AT_FIELD"       { return symbol(sym.AT_FIELD); }
+  "MISSION"        { return symbol(sym.MISSION); }
+  "COMMUNICATE"    { return symbol(sym.COMMUNICATE); }
+
+  /* Ignorando Ruído */
+  "//"[^\r\n]* { /* discard single-line comments */ }
+  "/*"~"*/"        { /* discard multi-line comments */ }
+
+  {Identifier}     { return symbol(sym.IDENTIFIER, yytext()); }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // JCUP & SEMÂNTICA</span>
+            <span>[ ESTÁGIO 2 e 3 ]</span>
+        </div>
+        <div class="content">
+            <div class="split-view">
+                <div class="text-side">
+                    <h1>A Burocracia</h1>
+                    <h2>Regras Gramaticais LALR</h2>
+                    <ul>
+                        <li>O Parser recebe os Tokens e verifica se a <strong>ordem faz sentido</strong>.</li>
+                        <li>Construção de nós para Loops (`MISSION`), Condicionais (`AT_FIELD`) e Atribuições.</li>
+                        <li><strong>Ação Semântica:</strong> Integrada nas regras JCup. Utiliza Java para validar Tabela de Símbolos (Ex: proibir redeclaração do mesmo piloto).</li>
+                    </ul>
+                </div>
+                <div class="code-side">
+<pre><code class="language-java">/* Fragmento de nervlang.cup */
+var_decl ::=
+    PILOT type:t IDENTIFIER:vn ASSIGN expr SEMI
+    {:
+        // Ação Semântica em Java
+        String scope = sa.getCurrentClass();
+        sa.declareVar(vn, t, scope, 0, 0); // Valida Tabela
+
+        System.out.println("[Lexical] Variable: " + t + " " + vn);
+        System.out.println("[Semantic] Assigned type " + t);
+    :} ;
+
+stmt ::=
+    | MISSION LPAREN for_init SEMI expr SEMI assignment RPAREN
+      LBRACE stmt_list RBRACE
+    {: System.out.println("[Syntactic] MISSION (for) -- OK"); :} ;</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // TEST.TXT</span>
+            <span>[ A LINGUAGEM ]</span>
+        </div>
+        <div class="content">
+            <div class="split-view">
+                <div class="text-side">
+                    <h1>A Sintaxe NervLang</h1>
+                    <h2>Como um programador escreve</h2>
+                    <ul>
+                        <li>Código estruturado dentro de classes `MAGI`.</li>
+                        <li>Variáveis são `PILOT`, com tipos estritos (`INTEGER`, `BOOLEAN`).</li>
+                        <li>If e Else se tornam verificação de escudo `AT_FIELD` e `ALTER`.</li>
+                        <li>Print no terminal mapeado para `COMMUNICATE`.</li>
+                    </ul>
+                </div>
+                <div class="code-side">
+<pre><code class="language-rust">/* Script de Calibração escrito em NervLang */
+MAGI SyncTest {
+    ORDER VOID main() {
+        PILOT INTEGER sync_rate = 25;
+        PILOT TEXT pilot_name = "Ikari Shinji";
+
+        MISSION (PILOT INTEGER phase = 1; phase <= 3; phase++) {
+            COMMUNICATE("Fase de calibracao:");
+            COMMUNICATE(phase);
+            sync_rate = sync_rate + 15;
+        }
+
+        AT_FIELD (sync_rate > 60) {
+            COMMUNICATE("Status: PADRAO AZUL. Sincronizacao estavel.");
+        } ALTER {
+            COMMUNICATE("Status: PADRAO LARANJA. Risco de Berserk.");
+        }
+        SYNC;
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // INTERPRETER.JAVA</span>
+            <span>[ O DIFERENCIAL ]</span>
+        </div>
+        <div class="content">
+            <div class="split-view">
+                <div class="text-side">
+                    <h1>O Interpretador Tree-Walking</h1>
+                    <h2>Dando Vida à AST</h2>
+                    <ul>
+                        <li>A maioria dos trabalhos acadêmicos para apenas na validação do texto.</li>
+                        <li>A NervLang executa a Árvore Sintática na memória ram.</li>
+                        <li>Calcula a matemática, resolve a precedência e <strong>gerencia escopo dinâmico</strong> de métodos.</li>
+                        <li><span class="highlight">Engenharia de precisão:</span> Controle de blocos condicionais aninhados ignorando `ALTER` caso o `AT_FIELD` seja verdadeiro.</li>
+                    </ul>
+                </div>
+                <div class="code-side">
+<pre><code class="language-java">/* Controle Condicional no Interpretador */
+else if (t == TT.AT_FIELD) { // if / if-else
+    advance(); expect(TT.LPAREN);
+    Object cond = evalExpr(); // Resolve a matemática
+    expect(TT.RPAREN); expect(TT.LBRACE);
+
+    if (toBool(cond)) {
+        execBlock(); // Executa o Bloco
+        if (peek().type == TT.ALTER) {
+            advance(); expect(TT.LBRACE);
+            skipBlock(); // IGNORA O ELSE
+        }
+    } else {
+        skipBlock(); // IGNORA O IF
+        if (peek().type == TT.ALTER) {
+            advance(); expect(TT.LBRACE);
+            execBlock(); // Executa o Else
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // OUTPUT</span>
+            <span>[ EXECUÇÃO ]</span>
+        </div>
+        <div class="content" style="align-items: center; text-align: center;">
+            <h1>Terminal Operacional</h1>
+            <h2>O Resultado do Interpretador</h2>
+            <div style="background: #000; padding: 20px 30px; border: 1px solid var(--terminal-green); border-radius: 5px; color: var(--terminal-green); font-family: monospace; text-align: left; width: 70%; line-height: 1.5; font-size: 1.1rem; box-shadow: 0 0 20px rgba(51, 255, 51, 0.1);">
+                <span style="color: #666;">$ ./run.sh test.txt</span><br><br>
+                [Lexical]   Variable declared: INTEGER sync_rate<br>
+                [Syntactic] AT_FIELD/ALTER (if/else) -- OK<br>
+                [Semantic]  Assigned value to 'sync_rate' of type INTEGER<br>
+                <span style="color: #666;">========================================================</span><br>
+                <span style="color: #fff;">--- Program Output ---</span><br><br>
+                Calibrando conexao neural...<br>
+                Fase de calibracao:<br>
+                1<br>
+                Fase de calibracao:<br>
+                2<br>
+                Fase de calibracao:<br>
+                3<br>
+                Taxa de sincronizacao final atingida:<br>
+                70<br>
+                Status: PADRAO AZUL. Sincronizacao estavel.<br>
+            </div>
+        </div>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <span>MAGI_SYSTEM // SHUTDOWN</span>
+            <span>[ FIM DA OPERAÇÃO ]</span>
+        </div>
+        <div class="content" style="align-items: center; text-align: center;">
+            <h1 style="font-size: 4rem;">OPERAÇÃO CONCLUÍDA</h1>
+            <h2>Todos os requisitos do edital foram atendidos e superados.</h2>
+            <br>
+            <p>O código-fonte completo está versionado no GitHub e possui scripts nativos para compilação em ambientes Unix-like.</p>
+            <p style="margin-top: 40px; color: var(--magi-red); font-size: 1.5rem; font-weight: bold;">[ AGRADEÇO A ATENÇÃO ]</p>
+        </div>
+    </div>
+
+    <div class="status-bar">Use as setas ⬅ ➡ ou ESPAÇO para navegar.</div>
+
+    <script>
+        // Aplicar Syntax Highlighting
+        hljs.highlightAll();
+
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.window-container');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            } else if (e.key === 'ArrowLeft') {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                showSlide(currentSlide);
+            }
+        });
+
+        // Clique apenas nos cantos para não atrapalhar a cópia de código
+        document.addEventListener('click', (e) => {
+            if(e.target.tagName !== 'CODE' && e.target.tagName !== 'PRE') {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+        });
+    </script>
+</body>
+</html>
